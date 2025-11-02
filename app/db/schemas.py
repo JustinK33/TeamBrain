@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, StringConstraints
-from typing import Annotated
+from typing import Annotated, Optional
 
 class UserBase(BaseModel):
     name: str
@@ -14,6 +14,13 @@ class UserLogin(BaseModel):
 
 class UserResponse(UserBase):
     id: int
+
+    class Config:
+        orm_mode = True
+
+class UpdateUser(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
 
     class Config:
         orm_mode = True
