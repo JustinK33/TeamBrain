@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+psycopg2-binary
+sqlalchemy
+pydantic
+passlib
+python-jose
+python-dotenv
+alembic
+pytest
+httpx
+pydantic-settings
+python-multipart
+black
+flake8
+isort
+bcrypt==4.2.0 --no-cache-dir
