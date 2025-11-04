@@ -5,7 +5,6 @@ from app.core.security import hash_password, verify_password, create_access_toke
 from app.db.schemas import UserCreate, UserLogin, UserResponse, TokenResponse
 from app.db.models import User
 from datetime import timedelta
-from jose import JWTError, jwt
 
 router = APIRouter(prefix="/auth", tags=['auth'])
 
