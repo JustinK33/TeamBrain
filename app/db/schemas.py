@@ -35,6 +35,12 @@ class SpaceBase(BaseModel):
 class SpaceCreate(SpaceBase):
     password_hash: Optional[str] = None
 
+class SpaceMembershipResponse(BaseModel):
+    name: str
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
 class SpaceResponse(SpaceBase):
     id: int
     owner_id: int
@@ -61,5 +67,18 @@ class MessageResponse(BaseModel):
     user_id: int
     space_id: int
     created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class MessgeEditResponse(BaseModel):
+    id: int
+    content: str
+    user_id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UpdateMessage(BaseModel):
+    content: str
 
     model_config = ConfigDict(from_attributes=True)

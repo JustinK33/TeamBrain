@@ -33,5 +33,4 @@ def get_user_by_id(user_id: int, db: Session = Depends(database.get_db)):
 @router.get("/", response_model=list[schemas.UserResponse])
 def get_all_users(db: Session = Depends(database.get_db)):
     users = db.query(models.User).all()
-    # since i have orm_mode=True in settings it returns JSON formatted
     return users

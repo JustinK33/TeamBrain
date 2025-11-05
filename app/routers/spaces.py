@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import delete
 from app.db import schemas, database
 from app.db.models import SpaceMembership, Space, User
-from app.core.security import get_current_user, hash_password, verify_password, create_access_token
+from app.core.security import get_current_user, hash_password, verify_password
 
 router = APIRouter(prefix="/spaces", tags=["spaces"])
 
@@ -60,3 +61,28 @@ def join_space(space_id: int,
         "space_id": space_id,
         "joined": "true"
     }
+
+@router.delete("/{space_id}/leave")
+def leave_space(space_id: int,
+                db: Session = Depends(database.get_db),
+                current_user: User = Depends(get_current_user)
+                ):
+    membership = db.query(SpaceMembership).filter(
+        SpaceMembership.user_id == current_user.id,
+        SpaceMembership.space_id == space_id
+    ).first()
+    if not membership:
+        raise HTTPException(status_code=400, detail="Your not in this space")
+    db.delete(membership)
+    db.commit()
+    return{
+        "space_id": space_id,
+        "status": "left"
+    }
+
+@router.get("/{space_id}/members", response_model=list[schemas.SpaceMembershipResponse])
+def get_members(space_id: int, db: Session = Depends(database.get_db)):
+    members = db.query(SpaceMembership).filter(SpaceMembership.space_id == space_id).all()
+    ids = [d.user_id for d in members]
+    name = db.query(User).filter(User.id.in_(ids)).all()
+    return name
