@@ -2,10 +2,11 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.db import models, schemas, database
 from app.core.security import get_current_user
+from app.core.security import rd
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.get("/me")
+@router.get("/me", response_model=schemas.UserResponse)
 def get_current_user_profile(current_user: models.User = Depends(get_current_user)):
     return current_user
 
@@ -21,6 +22,13 @@ def update_user(update_data: schemas.UpdateUser,
 
     db.commit()
     db.refresh(current_user)
+
+    try:
+        rd.delete(f"user:{current_user.id}")
+        rd.set(
+        f"user:{current_user.id}", schemas.UserResponse.model_validate(current_user).model_dump_json(), ex=180)
+    except Exception:
+        pass
     return current_user
 
 @router.get("/{user_id}", response_model=schemas.UserResponse)

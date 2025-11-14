@@ -34,6 +34,14 @@ def create_message(message_data: CreateMessage,
     db.refresh(new_content)
     return new_content
 
+@router.get("/")
+def get_messages(space_id: int, db: Session = Depends(database.get_db)):
+    if space_id:
+        messages = db.query(Message).filter(Message.space_id == space_id).all()
+    else:
+        messages = db.query(Message).all()
+    return messages
+
 @router.get("/{id}", response_model=MessageResponse)
 def get_message(id: int, db: Session = Depends(database.get_db)):
     message = db.query(Message).filter(Message.id == id).first()

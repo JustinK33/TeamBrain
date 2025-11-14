@@ -44,6 +44,7 @@ class SpaceMembershipResponse(BaseModel):
 class SpaceResponse(SpaceBase):
     id: int
     owner_id: int
+    requires_password: bool
 
     model_config = ConfigDict(from_attributes=True)
 

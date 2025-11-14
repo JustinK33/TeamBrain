@@ -7,6 +7,11 @@ from app.db import models, database
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
 
+from app.db import schemas
+import redis
+
+rd = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
@@ -40,7 +45,26 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             raise credentials_exception
     except JWTError:
         raise credentials_exception
+    
+    key = f"user:{user_id}"
+    
+    try:
+        cache = rd.get(key)
+    except Exception:
+        cache = None
+
+    if cache is not None and isinstance(cache, str):
+        cached = schemas.UserResponse.model_validate_json(cache)
+        user = db.get(models.User, cached.id)
+        if user:
+            return user
+        
     user = db.query(models.User).filter(models.User.id == int(user_id)).first()
     if user is None:
         raise credentials_exception
+    try:
+        rd.set(key, schemas.UserResponse.model_validate(user).model_dump_json(), ex=120)
+    except:
+        pass
+    
     return user

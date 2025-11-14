@@ -24,6 +24,10 @@ class Space(Base):
 
     messages = relationship("Message", back_populates="space")
     memberships = relationship("SpaceMembership", back_populates="space")
+    
+    @property
+    def requires_password(self) -> bool:
+        return self.password_hash is not None
 
 class SpaceMembership(Base):
     __tablename__ = "space_membership"
