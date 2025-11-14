@@ -1,4 +1,3 @@
-from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from app.core.config import settings
@@ -6,7 +5,8 @@ from fastapi.security import OAuth2PasswordBearer
 from app.db import models, database
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
-
+from passlib.context import CryptContext
+from fastapi import Request
 from app.db import schemas
 import redis
 
@@ -68,3 +68,19 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         pass
     
     return user
+
+def get_userid_from_request(request: Request):
+    auth = request.headers.get("Authorization")
+    if not auth or not auth.startswith("Bearer "):
+        return None
+    
+    token = auth.split(" ", 1)[1]
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except JWTError:
+        return None
+    user_id = payload.get("sub")
+    if user_id is None:
+        return None
+    
+    return str(user_id)

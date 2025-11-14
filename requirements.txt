@@ -17,3 +17,4 @@ isort
 bcrypt==4.2.0 --no-cache-dir
 redis
 requests
+slowapi

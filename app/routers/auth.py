@@ -1,12 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from app.db.database import get_db
 from sqlalchemy.orm import Session
 from app.core.security import hash_password, verify_password, create_access_token
 from app.db.schemas import UserCreate, UserLogin, UserResponse, TokenResponse
 from app.db.models import User
 from datetime import timedelta
+from slowapi import Limiter
+from app.core.config import settings
+from slowapi.util import get_remote_address
 
 router = APIRouter(prefix="/auth", tags=['auth'])
+
+limiter = Limiter(key_func=get_remote_address,
+                  storage_uri=settings.REDIS_URL
+                  )
 
 @router.post("/register", response_model=UserResponse)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -23,7 +30,8 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 # learn this
 @router.post("/login", response_model=TokenResponse)
-def login(user_data: UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("3/minute", per_method=True)
+def login(user_data: UserLogin, request: Request, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == user_data.email).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")

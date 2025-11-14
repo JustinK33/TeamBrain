@@ -1,18 +1,34 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import delete
 from app.db.schemas import MessageResponse, CreateMessage, MessgeEditResponse, UpdateMessage
 from app.db.models import User, Message, SpaceMembership, Space
 from app.db import database
-from app.core.security import get_current_user
+from app.core.security import get_current_user, get_userid_from_request
+from app.core.config import settings
+
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+def limit_by_user(request: Request):
+    user_id = get_userid_from_request(request)
+    if user_id is not None:
+        return(f"user:{user_id}")
+    return(f"ip:{get_remote_address(request)}")
+
+limiter = Limiter(key_func=limit_by_user,
+                  storage_uri=settings.REDIS_URL
+                  )
 
 router = APIRouter(prefix="/messages", tags=['messages'])
 
 @router.post("/", response_model=MessageResponse)
+@limiter.limit("1/minute", per_method=True)
 def create_message(message_data: CreateMessage,
+                   request: Request, # i need this bc the docs said so
                    current_user: User = Depends(get_current_user),
                    db: Session = Depends(database.get_db)
-                   ):
+                   ) -> Message:
     space_exist = db.query(Space).filter(Space.id == message_data.space_id).first()
     if not space_exist:
         raise HTTPException(status_code=404, detail="This space does not exists")
