@@ -25,3 +25,9 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(spaces.router)
 app.include_router(messages.router)
+
+# future reference to test my thing
+# import time
+# start = time.perf_counter()
+# elapsed_ms = (time.perf_counter() - start) * 1000
+# print(f"Endpoint took: {elapsed_ms:.2f} ms")

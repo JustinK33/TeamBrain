@@ -14,7 +14,8 @@ python-multipart
 black
 flake8
 isort
-bcrypt==4.2.0 --no-cache-dir
+bcrypt==4.2.0
 redis
 requests
 slowapi
+pydantic[email]
