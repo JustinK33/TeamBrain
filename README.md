@@ -80,4 +80,5 @@ A web app where teams collaboratively build, refine, and query a shared knowledg
 ### Run with Docker
 
   2. Build image (docker build -t teambrain -f Dockerfile .)
-  3. Run image (docker run --rm -p 8000:8000 teambrain)
+  3. Run image (docker run --rm -p 8000:8000 --env-file .env teambrain)
+
